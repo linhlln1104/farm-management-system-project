@@ -1,0 +1,9 @@
+names:
+- cow
+- horse
+- sheep
+- zebra
+nc: 4
+test: C:\Users\Administrator\Desktop\Farm\DAT_animal_dataset\test
+train: C:\Users\Administrator\Desktop\Farm\DAT_animal_dataset\train
+val: C:\Users\Administrator\Desktop\Farm\DAT_animal_dataset\valid
