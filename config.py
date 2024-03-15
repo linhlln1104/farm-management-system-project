@@ -35,7 +35,7 @@ class ModelConfig:
 
 
 class TrackingConfig:
-    MODEL_WEIGHTS = os.path.join("..", "model_weight", "yolov8n_50_epochs.pt")
+    MODEL_WEIGHTS = os.path.join("..", "model_weight", "yolov9c_50_epochs.pt")
 
     ### detections (YOLO)
     CONFIDENCE = 0.6
@@ -54,13 +54,14 @@ class TrackingConfig:
     VIDEO_FILE = os.path.join("..", "video_demo", "video_sheep_demo.mp4")
     OUTPUT_PATH = os.path.join("..", "output", "output.mp4")
     VIDEO_FILE_ZONE = os.path.join("..", "video_demo", "tracking_in_zone_demo_video.mp4")
-    ZONE_CONFIGURATION_PATH = os.path.join("..", "data", "vertical-zone-config.json")
+    ZONE_CONFIGURATION_PATH = os.path.join("..", "data", "quarters-zone-config.json")
 
 
     ### flags to turn functions on/off
-    ENABLE_HEATMAP = True
-    ENABLE_TRACKING = True
-    ENABLE_COUNTING = True
+    ENABLE_REALTIME_STREAMING = True
+    ENABLE_HEATMAP = False
+    ENABLE_COUNTING = False
+    ENABLE_TRACE_ANNOTATOR = False
 
     DEVICE = 0
 
@@ -69,3 +70,6 @@ class TrackingConfig:
 
     # Zone coordinates (x1, y1, x2, y2)
     ZONE_COORDINATES = (100, 100, 300, 300)
+
+    DELAY = 20
+    SCALE = 500
