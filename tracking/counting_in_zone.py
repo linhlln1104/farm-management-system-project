@@ -1,6 +1,6 @@
 import json
 from typing import List, Tuple
-
+import ctypes
 import cv2
 import numpy as np
 from tqdm import tqdm
@@ -12,19 +12,7 @@ from config import TrackingConfig
 COLORS = sv.ColorPalette.default()
 
 def load_zones_config(file_path: str) -> List[np.ndarray]:
-    """
-    Load polygon zone configurations from a JSON file.
 
-    This function reads a JSON file which contains polygon coordinates, and
-    converts them into a list of NumPy arrays. Each polygon is represented as
-    a NumPy array of coordinates.
-
-    Args:
-    file_path (str): The path to the JSON configuration file.
-
-    Returns:
-    List[np.ndarray]: A list of polygons, each represented as a NumPy array.
-    """
     with open(file_path, "r") as file:
         data = json.load(file)
         return [np.array(polygon, np.int32) for polygon in data["polygons"]]
@@ -64,24 +52,7 @@ def initiate_annotators(
 def detect(
     frame: np.ndarray, model: YOLO, confidence_threshold: float = 0.5
 ) -> sv.Detections:
-    """
-    Detect objects in a frame using a YOLO model, filtering detections by class ID and
-        confidence threshold.
 
-    Args:
-        frame (np.ndarray): The frame to process, expected to be a NumPy array.
-        model (YOLO): The YOLO model used for processing the frame.
-        confidence_threshold (float, optional): The confidence threshold for filtering
-            detections. Default is 0.5.
-
-    Returns:
-        sv.Detections: Filtered detections after processing the frame with the YOLO
-            model.
-
-    Note:
-        This function is specifically tailored for a YOLO model and assumes class ID 0
-            for filtering.
-    """
     results = model(frame, imgsz=1280, verbose=False)[0]
     detections = sv.Detections.from_ultralytics(results)
     filter_by_class = detections.class_id == 2
@@ -96,22 +67,6 @@ def annotate(
     box_annotators: List[sv.BoundingBoxAnnotator],
     detections: sv.Detections,
 ) -> np.ndarray:
-
-    """
-    Annotate a frame with zone and box annotations based on given detections.
-
-    Args:
-        frame (np.ndarray): The original frame to be annotated.
-        zones (List[sv.PolygonZone]): A list of polygon zones used for detection.
-        zone_annotators (List[sv.PolygonZoneAnnotator]): A list of annotators for
-            drawing zone annotations.
-        box_annotators (List[sv.BoundingBoxAnnotator]): A list of annotators for
-            drawing box annotations.
-        detections (sv.Detections): Detections to be used for annotation.
-
-    Returns:
-        np.ndarray: The annotated frame.
-    """
 
     annotated_frame = frame.copy()
     for zone, zone_annotator, box_annotator in zip(
@@ -165,8 +120,22 @@ if __name__ == "__main__":
                 box_annotators=box_annotators,
                 detections=detections,
             )
-            cv2.imshow("Processed Video", annotated_frame)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+
+            user32 = ctypes.windll.user32
+            screen_width = user32.GetSystemMetrics(0)
+            screen_height = user32.GetSystemMetrics(1)
+
+            # Resize the frame to fit the screen
+            max_width = screen_width - TrackingConfig.SCALE
+            max_height = screen_height - TrackingConfig.SCALE
+            frame_height, frame_width = annotated_frame.shape[:2]
+            scale_factor = min(max_width / frame_width, max_height / frame_height)
+            resized_frame = cv2.resize(annotated_frame, None, fx=scale_factor, fy=scale_factor)
+
+            delay = TrackingConfig.DELAY
+            # Display the resized frame
+            cv2.imshow("Processed Video", resized_frame)
+            if cv2.waitKey(delay) & 0xFF == ord("q"):
                 break
 
         cv2.destroyAllWindows()
